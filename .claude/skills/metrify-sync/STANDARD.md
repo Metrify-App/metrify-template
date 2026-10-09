@@ -38,7 +38,8 @@ two ways.
 | `.gitignore` | Git basics. |
 
 A repo adds its own skills and `.claude/rules/*.md` freely; the sync touches only the
-`metrify-*` ones. Other docs (`docs/SPEC.md`, `DEMO.md`...) are free; `CLAUDE.md` lists
+`metrify-*` ones. `.claude/` holds real files only, no symlinks: a skill installed
+elsewhere (`.agents/skills/`...) is copied in. Other docs (`docs/SPEC.md`, `DEMO.md`...) are free; `CLAUDE.md` lists
 them under Docs.
 
 ## README sections

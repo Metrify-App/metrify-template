@@ -92,6 +92,9 @@ fi
 if grep -q '<!-- template-only: start -->' "$target/README.md" "$target/CLAUDE.md"; then
   printf "%b!%b README.md / CLAUDE.md are still the template's\n" "$YELLOW" "$NC"; todo=1
 fi
+if [ -n "$(find "$target/.claude" -type l 2>/dev/null)" ]; then
+  printf "%b!%b .claude contains symlinks; the standard wants real files\n" "$YELLOW" "$NC"; todo=1
+fi
 if [ "$todo" -eq 1 ]; then
   printf "\nNext: in %s, run /metrify-setup.\n" "$target"
 else

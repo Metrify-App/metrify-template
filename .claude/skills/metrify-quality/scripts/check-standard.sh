@@ -89,6 +89,15 @@ for dir in .claude/skills/*/; do
   if [ -f "$dir/SKILL.md" ]; then ok "$dir"; else ko "$dir has no SKILL.md"; fi
 done
 
+printf -- "\n--- No symlinks in .claude\n"
+links=$(find .claude -type l 2>/dev/null)
+if [ -z "$links" ]; then
+  ok "no symlink"
+else
+  ko "symlinks in .claude (copy their target in instead):"
+  printf "%s\n" "$links" | sed 's/^/    /'
+fi
+
 printf -- "\n--- Fill markers\n"
 markers=$(grep -rn --include='*.md' --include='Makefile' --include='*.yml' '<!-- fill:' \
   README.md CLAUDE.md docs Makefile .github 2>/dev/null)

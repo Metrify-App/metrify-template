@@ -66,6 +66,8 @@ In this order, replacing every fill marker:
    formats of the standard. Every feature line points at a real path or route; a word
    another repo already defines gets a link, not a definition.
 7. `package.json`: the repo's name and description, `husky` in devDependencies.
+   Each symlink in `.claude/` (`find .claude -type l`) is replaced by a copy of its target
+   (`cp -RL`); ask before deleting the target folder it pointed to.
 8. Delete every `<!-- template-only: start -->...<!-- template-only: end -->` block.
 
 A fact neither deduced nor confirmed stays a fill marker: a marker is honest, a guess is
