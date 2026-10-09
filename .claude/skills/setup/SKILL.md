@@ -1,1 +1,0 @@
-../../../.agents/skills/setup/SKILL.md
