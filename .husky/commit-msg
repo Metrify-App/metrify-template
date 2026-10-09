@@ -14,7 +14,6 @@ printf -- "--- [%bCommit Message%b] ---\n" "$YELLOW" "$NC"
 # Git passes the raw message file: drop comment lines (they are stripped later by git)
 # (`|| true`: grep exits 1 when every line is a comment, which would abort under `sh -e`)
 commit_msg=$(grep -v '^#' "$1" || true)
-exit_code=0
 
 # Reject empty message
 if [ -z "$(echo "$commit_msg" | grep -vE '^[[:space:]]*$')" ]; then
@@ -46,7 +45,7 @@ pattern="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\([a-z0
 
 if ! echo "$subject" | grep -qE "$pattern"; then
   printf "\nCommit message must follow Git Conventional Commits specification:\n"
-  printf "  type(scope): description   (use "type!:" for breaking changes)\n\n"
+  printf '  type(scope): description   (use "type!:" for breaking changes)\n\n'
   printf "Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert\n\n"
   printf "Examples:\n"
   printf "  feat(health): add health-event schema\n"

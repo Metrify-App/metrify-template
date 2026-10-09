@@ -3,8 +3,10 @@
 > existing repo in with `sh ../metrify-template/.claude/skills/metrify-sync/scripts/sync.sh <repo>`.
 > Then in Claude Code run `/metrify-setup`: it scans the code, asks what it cannot deduce,
 > and fills README, CLAUDE.md, `docs/`, the Makefile and the CI. The standard every repo
-> follows is [.claude/skills/metrify-sync/STANDARD.md](.claude/skills/metrify-sync/STANDARD.md). After changing an owned file here, bump
-> `.claude/skills/metrify-sync/VERSION`; each repo picks it up with `/metrify-sync`.
+> follows is [.claude/skills/metrify-sync/STANDARD.md](.claude/skills/metrify-sync/STANDARD.md). After changing an owned file here, run
+> `sh .claude/skills/metrify-sync/scripts/bump.sh` (the CI fails until you do); each repo
+> picks it up with `/metrify-sync`. Repos' CI compares their version with this repo's `main`,
+> read publicly: keep it public.
 <!-- template-only: end -->
 
 # <!-- fill: repo-name -->

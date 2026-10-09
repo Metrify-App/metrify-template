@@ -4,8 +4,8 @@ The contract every Metrify repo follows, whatever its stack. The `metrify-*` ski
 this file. Version in `VERSION` next to it, bumped on every change to an owned file.
 
 A **fill marker** `<!-- fill: what goes here -->` flags a part not written yet. A repo is
-standard when every file below is present, its version matches the template's, and no fill
-marker is left.
+standard when every file below is present, its version matches the template's, its owned
+files match `OWNED.sha256`, and no fill marker is left.
 
 ## Owned and seeded files
 
@@ -17,7 +17,7 @@ two ways.
 | File | Holds |
 |---|---|
 | `.claude/rules/metrify-rules.md` | The shared rules. Claude Code loads every `.claude/rules/*.md` by itself. |
-| `.claude/skills/metrify-*` | The shared skills; `metrify-sync` also carries this file, `VERSION` and the sync script. |
+| `.claude/skills/metrify-*` | The shared skills; `metrify-sync` also carries this file, `VERSION`, `OWNED.sha256` and the scripts. |
 | `.husky/commit-msg` | Conventional Commits check. |
 
 **Seeded**: copied when missing, then the repo's own.
@@ -31,11 +31,15 @@ two ways.
 | `docs/GLOSSARY.md` | The repo's own domain words. |
 | `Makefile` | The make verbs below, plus project targets. |
 | `.husky/pre-commit`, `.husky/pre-push` | The hooks below, plus project checks. |
-| `.github/workflows/ci.yml` | `make install check` and the standard check, on push to `main` and on pull requests. |
-| `.github/pull_request_template.md` | PR checklist. |
+| `.github/workflows/ci.yml` | `make install check` and the standard check, on push to `main` and on pull requests. The check compares `VERSION` with the public template's `main`. |
 | `.claude/settings.json` | Shared permissions: make verbs and read-only git. |
 | `package.json` | husky. |
 | `.gitignore` | Git basics. |
+
+`OWNED.sha256` is the fingerprint of the owned files (`scripts/owned-hash.sh`), released
+with `VERSION`. A change to an owned file ships with `sh .claude/skills/metrify-sync/scripts/bump.sh`
+in the template, which bumps both; `check-standard.sh` fails until it is run. In a repo, a
+mismatch means an owned file was edited locally.
 
 A repo adds its own skills and `.claude/rules/*.md` freely; the sync touches only the
 `metrify-*` ones. `.claude/` holds real files only, no symlinks: a skill installed
@@ -111,6 +115,9 @@ Numbers are stable: a removed feature leaves its number unused.
 
 ```markdown
 # Glossary
+
+This repo's own words. Code, UI and docs use these terms. A word another Metrify repo
+already defines is linked below, not redefined.
 
 **<Term>**: <one-sentence definition>. <Optional: what it is not, the word to avoid.>
 

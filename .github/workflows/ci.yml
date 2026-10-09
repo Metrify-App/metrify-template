@@ -22,6 +22,11 @@ jobs:
         with:
           persist-credentials: false
 
+      # Node for husky (make install)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
       # /metrify-setup adds the stack's toolchain here (setup-uv, setup-python...)
 
       - name: Install dependencies

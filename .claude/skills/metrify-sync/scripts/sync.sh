@@ -30,6 +30,11 @@ if [ "$(basename "$src")" != "metrify-template" ] && ! echo "$src_remote" | grep
   exit 2
 fi
 [ "$src" != "$target" ] || { printf "%b✗%b source and target are the same repo.\n" "$RED" "$NC"; exit 2; }
+# The working tree is what gets copied: say when it is not the published template
+src_branch=$(git -C "$src" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)
+[ "$src_branch" = main ] || printf "%b!%b template is on '%s', not main\n" "$YELLOW" "$NC" "$src_branch"
+[ -z "$(git -C "$src" status --porcelain 2>/dev/null)" ] \
+  || printf "%b!%b template has uncommitted changes: they are copied too\n" "$YELLOW" "$NC"
 git -C "$target" rev-parse --git-dir >/dev/null 2>&1 || { printf "%b✗%b %s is not a git repo.\n" "$RED" "$NC" "$target"; exit 2; }
 
 # Overwriting is only safe when git can show and undo it
@@ -78,7 +83,7 @@ done
 printf -- "\n--- Seeded (copied when missing)\n"
 for f in README.md CLAUDE.md docs/FEATURES.md docs/ARCHITECTURE.md docs/GLOSSARY.md \
   Makefile .husky/pre-commit .husky/pre-push .github/workflows/ci.yml \
-  .github/pull_request_template.md .claude/settings.json package.json .gitignore; do
+  .claude/settings.json package.json .gitignore; do
   seeded "$f"
 done
 chmod +x "$target"/.husky/commit-msg "$target"/.husky/pre-commit "$target"/.husky/pre-push \

@@ -12,41 +12,62 @@ failures=0
 ok() { printf "%b✓%b %s\n" "$GREEN" "$NC" "$1"; }
 ko() { printf "%b✗%b %s\n" "$RED" "$NC" "$1"; failures=$((failures + 1)); }
 
-# The template keeps its fill markers on purpose
+# The template keeps its fill markers on purpose and releases the standard (same test as sync.sh)
 is_template=0
-grep -q '<!-- template-only: start -->' README.md 2>/dev/null && is_template=1
+if [ "$(basename "$(pwd)")" = "metrify-template" ] \
+  || git remote get-url origin 2>/dev/null | grep -q 'metrify-template'; then
+  is_template=1
+fi
 
 SYNC=.claude/skills/metrify-sync
 TEMPLATE=../metrify-template
 
 printf -- "--- Standard files\n"
-for f in .claude/rules/metrify-rules.md $SYNC/STANDARD.md $SYNC/VERSION $SYNC/scripts/sync.sh \
+for f in .claude/rules/metrify-rules.md $SYNC/STANDARD.md $SYNC/VERSION $SYNC/OWNED.sha256 $SYNC/scripts/sync.sh \
   .husky/commit-msg README.md CLAUDE.md docs/FEATURES.md docs/ARCHITECTURE.md docs/GLOSSARY.md \
   Makefile .husky/pre-commit .husky/pre-push .github/workflows/ci.yml \
-  .github/pull_request_template.md .claude/settings.json package.json .gitignore; do
+  .claude/settings.json package.json .gitignore; do
   if [ -f "$f" ]; then ok "$f"; else ko "$f missing"; fi
 done
 
 printf -- "\n--- Version\n"
 version=$(cat $SYNC/VERSION 2>/dev/null || echo none)
-if [ -f $TEMPLATE/$SYNC/VERSION ] && [ "$(pwd)" != "$(cd $TEMPLATE && pwd)" ]; then
-  latest=$(cat $TEMPLATE/$SYNC/VERSION)
-  if [ "$version" = "$latest" ]; then
-    ok "standard $version, same as $TEMPLATE"
-    # Owned files are edited in the template only
-    for f in .claude/rules/metrify-rules.md .husky/commit-msg; do
-      cmp -s "$f" "$TEMPLATE/$f" || ko "$f differs from $TEMPLATE (owned: edit it there)"
-    done
-    for dir in $TEMPLATE/.claude/skills/metrify-*/; do
-      name=$(basename "$dir")
-      diff -rq "$dir" ".claude/skills/$name" >/dev/null 2>&1 \
-        || ko ".claude/skills/$name differs from $TEMPLATE (owned: edit it there)"
-    done
-  else
-    ko "standard $version, $TEMPLATE is at $latest: run /metrify-sync"
-  fi
+
+# Owned files must match the fingerprint released with VERSION
+stored=$(cat $SYNC/OWNED.sha256 2>/dev/null || echo none)
+if [ "$(sh $SYNC/scripts/owned-hash.sh 2>/dev/null)" = "$stored" ]; then
+  ok "owned files match standard $version"
+elif [ "$is_template" -eq 1 ]; then
+  ko "owned files changed since standard $version: run sh $SYNC/scripts/bump.sh"
 else
-  printf "%b-%b standard %s (no $TEMPLATE to compare with)\n" "$YELLOW" "$NC" "$version"
+  ko "owned files edited here: edit them in metrify-template, then /metrify-sync"
+fi
+
+# The latest standard: the local template, else the public one on GitHub (the CI's case)
+latest=""
+if [ "$is_template" -eq 1 ]; then
+  :
+elif [ -f $TEMPLATE/$SYNC/VERSION ]; then
+  latest=$(cat $TEMPLATE/$SYNC/VERSION); source=$TEMPLATE
+else
+  source=Metrify-App/metrify-template
+  # Network trouble only warns: a GitHub hiccup should not turn the CI red
+  if ! latest=$(curl -fsSL --max-time 10 \
+    "https://raw.githubusercontent.com/$source/main/$SYNC/VERSION" 2>/dev/null); then
+    latest=""
+    msg="standard $version not compared: could not read $SYNC/VERSION from $source"
+    printf "%b-%b %s\n" "$YELLOW" "$NC" "$msg"
+    [ -z "${GITHUB_ACTIONS:-}" ] || printf "::warning::%s\n" "$msg"
+  fi
+fi
+if [ -n "$latest" ]; then
+  if [ "$version" = "$latest" ]; then
+    ok "standard $version, same as $source"
+  elif [ "$version" -gt "$latest" ] 2>/dev/null; then
+    ko "standard $version, ahead of $source at $latest (local template behind? git -C $TEMPLATE pull)"
+  else
+    ko "standard $version, $source is at $latest: run /metrify-sync"
+  fi
 fi
 
 # $1 file, then the expected ## headings in order; extra headings in between are allowed

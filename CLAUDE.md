@@ -1,7 +1,8 @@
 <!-- template-only: start -->
 > This is `metrify-template`, the seed of every Metrify repo. Its files are the standard
 > (`.claude/skills/metrify-sync/STANDARD.md`) with fill markers left in. `/metrify-setup` fills them in
-> a new repo and deletes this note.
+> a new repo and deletes this note. After changing an owned file (see the standard), run
+> `sh .claude/skills/metrify-sync/scripts/bump.sh`.
 <!-- template-only: end -->
 
 # <!-- fill: repo-name -->

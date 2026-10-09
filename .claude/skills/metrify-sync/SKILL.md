@@ -9,8 +9,9 @@ disable-model-invocation: true
 `STANDARD.md` (next to this file) says which files the template owns and which it only
 seeds. `VERSION` is the standard's version.
 
-In `metrify-template` itself there is nothing to sync: change the owned file there and
-bump `VERSION` instead.
+In `metrify-template` itself there is nothing to sync: change the owned file there, then
+release it with `sh .claude/skills/metrify-sync/scripts/bump.sh` (bumps `VERSION` and
+`OWNED.sha256`).
 
 ## 1. Update the template
 
