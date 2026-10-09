@@ -1,0 +1,19 @@
+{
+  "name": "metrify-template",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Metrify-App/metrify-template#readme",
+  "bugs": {
+    "url": "https://github.com/Metrify-App/metrify-template/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Metrify-App/metrify-template.git"
+  },
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  }
+}

@@ -1,0 +1,55 @@
+#!/bin/sh
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+NC='\033[0m'
+
+printf -- "------------------------------------------------------------------------------------------------------------------------------\n"
+
+# Header
+printf -- "--- %bpre-push%b hook %bstarting%b ---\n\n" "$BLUE" "$NC" "$YELLOW" "$NC"
+
+exit_code=0
+
+printf -- "---------------------------------------------------------------\n"
+
+# Branch sync check (for develop and main branches)
+
+printf -- "--- [%bBranch Sync Check%b] ---\n" "$YELLOW" "$NC"
+
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$current_branch" = "main" ] || [ "$current_branch" = "develop" ]; then
+  # Husky runs hooks with `sh -e`: every failing command must be handled explicitly
+  if ! git fetch origin --quiet 2>/dev/null; then
+    printf "Could not fetch 'origin' (offline?), skipping remote sync check.\n"
+    printf -- "--- [%bBranch Sync Check: skipped%b] ---\n" "$YELLOW" "$NC"
+  elif ! git rev-parse --verify --quiet "origin/$current_branch" >/dev/null; then
+    printf "'origin/%s' doesn't exist yet (first push), skipping remote sync check.\n" "$current_branch"
+    printf -- "--- [%bBranch Sync Check: skipped%b] ---\n" "$YELLOW" "$NC"
+  elif behind=$(git rev-list --left-only --count "origin/$current_branch...HEAD") && [ "$behind" -gt 0 ]; then
+    printf "\nYour branch is %d commits behind 'origin/%s'.\n" "$behind" "$current_branch"
+    printf "Pull latest changes before pushing.\n\n"
+    printf -- "--- %b✗%b [%bBranch Sync Check%b] ---\n" "$RED" "$NC" "$YELLOW" "$NC"
+    exit_code=1
+  else
+    printf -- "--- %b✓%b [%bBranch Sync Check%b] ---\n" "$GREEN" "$NC" "$GREEN" "$NC"
+  fi
+else
+  printf "On feature branch '%s', skipping remote sync check.\n" "$current_branch"
+  printf -- "--- [%bBranch Sync Check: skipped%b] ---\n" "$YELLOW" "$NC"
+fi
+
+printf -- "---------------------------------------------------------------\n"
+printf -- "\n\n---------------------------------------------------------------\n"
+
+if [ "$exit_code" -eq 0 ]; then
+  printf -- "\n--- %bpre-push%b hook completed %bsuccessfully%b ---\n" "$BLUE" "$NC" "$GREEN" "$NC"
+else
+  printf -- "\n--- %bpre-push%b hook completed %bwith failures%b ---\n" "$BLUE" "$NC" "$RED" "$NC"
+fi
+printf -- "------------------------------------------------------------------------------------------------------------------------------\n\n"
+
+exit $exit_code

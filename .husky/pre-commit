@@ -1,0 +1,48 @@
+#!/bin/sh
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+NC='\033[0m'
+
+printf -- "------------------------------------------------------------------------------------------------------------------------------\n"
+
+# Header
+printf -- "--- %bpre-commit%b hook %bstarting%b ---\n\n" "$BLUE" "$NC" "$YELLOW" "$NC"
+
+exit_code=0
+
+printf -- "---------------------------------------------------------------\n"
+
+# File size check (block if >10MB)
+
+printf -- "--- [%bFile Size Check%b] ---\n" "$YELLOW" "$NC"
+
+large_files=$(git diff --cached --name-only --diff-filter=ACMR | while IFS= read -r file; do
+  if [ -f "$file" ]; then
+    size_mb=$(du -m "$file" 2>/dev/null | cut -f1)
+    if [ "$size_mb" -gt 10 ]; then
+      printf "  %s (%sMB)\n" "$file" "$size_mb"
+    fi
+  fi
+done)
+
+if [ -n "$large_files" ]; then
+  printf "%bLarge files detected (>10MB):%b\n" "$YELLOW" "$NC"
+  printf "%s\n" "$large_files"
+  printf "Consider using Git LFS for large files.\n\n"
+  printf -- "--- %b✗%b [%bFile Size Check%b] ---\n" "$RED" "$NC" "$YELLOW" "$NC"
+  exit_code=1
+else
+  printf -- "--- %b✓%b [%bFile Size Check%b] ---\n" "$GREEN" "$NC" "$GREEN" "$NC"
+fi
+
+if [ "$exit_code" -eq 0 ]; then
+  printf -- "\n--- %bpre-commit%b hook completed %bsuccessfully%b ---\n" "$BLUE" "$NC" "$GREEN" "$NC"
+else
+  printf -- "\n--- %bpre-commit%b hook completed %bwith failures%b ---\n" "$BLUE" "$NC" "$RED" "$NC"
+fi
+printf -- "------------------------------------------------------------------------------------------------------------------------------\n\n"
+
+exit $exit_code

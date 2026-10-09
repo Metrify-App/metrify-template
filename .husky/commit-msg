@@ -1,0 +1,79 @@
+#!/bin/sh
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+NC='\033[0m'
+
+printf -- "------------------------------------------------------------------------------------------------------------------------------\n"
+printf -- "--- %bcommit-msg%b hook %bstarting%b ---\n\n" "$BLUE" "$NC" "$YELLOW" "$NC"
+printf -- "---------------------------------------------------------------\n"
+printf -- "--- [%bCommit Message%b] ---\n" "$YELLOW" "$NC"
+
+# Git passes the raw message file: drop comment lines (they are stripped later by git)
+# (`|| true`: grep exits 1 when every line is a comment, which would abort under `sh -e`)
+commit_msg=$(grep -v '^#' "$1" || true)
+exit_code=0
+
+# Reject empty message
+if [ -z "$(echo "$commit_msg" | grep -vE '^[[:space:]]*$')" ]; then
+  printf "\nCommit message is empty.\n"
+  printf "Please write an actual commit message.\n\n"
+  printf -- "--- %b✗%b [%bCommit Message%b] ---\n" "$RED" "$NC" "$YELLOW" "$NC"
+  printf -- "---------------------------------------------------------------\n"
+  printf -- "\n--- %bcommit-msg%b hook completed %bfailed%b ---\n" "$BLUE" "$NC" "$RED" "$NC"
+  printf -- "------------------------------------------------------------------------------------------------------------------------------\n"
+  exit 1
+fi
+
+# Subject = first non-empty line
+subject=$(echo "$commit_msg" | grep -vE '^[[:space:]]*$' | head -n1)
+subject_len=${#subject}
+
+# Let git-generated messages through: merge, revert, and fixup/squash/amend for --autosquash
+if echo "$subject" | grep -qE '^(Merge |Revert "|fixup! |squash! |amend! )'; then
+  printf "Git-generated commit message, skipping format check.\n"
+  printf -- "--- %b✓%b [%bCommit Message%b] ---\n" "$GREEN" "$NC" "$GREEN" "$NC"
+  printf -- "---------------------------------------------------------------\n"
+  printf -- "\n--- %bcommit-msg%b hook completed %bsuccessfully%b ---\n" "$BLUE" "$NC" "$GREEN" "$NC"
+  printf -- "------------------------------------------------------------------------------------------------------------------------------\n\n"
+  exit 0
+fi
+
+# Conventional Commits format
+pattern="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\([a-z0-9-]+\))?!?: .+"
+
+if ! echo "$subject" | grep -qE "$pattern"; then
+  printf "\nCommit message must follow Git Conventional Commits specification:\n"
+  printf "  type(scope): description   (use "type!:" for breaking changes)\n\n"
+  printf "Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert\n\n"
+  printf "Examples:\n"
+  printf "  feat(health): add health-event schema\n"
+  printf "  fix(health): allow zero value in health-event\n"
+  printf "  docs(readme): update installation instructions\n\n"
+  printf -- "--- %b✗%b [%bCommit Message%b] ---\n" "$RED" "$NC" "$YELLOW" "$NC"
+  printf -- "---------------------------------------------------------------\n"
+  printf -- "\n--- %bcommit-msg%b hook completed %bfailed%b ---\n" "$BLUE" "$NC" "$RED" "$NC"
+  printf -- "------------------------------------------------------------------------------------------------------------------------------\n"
+  exit 1
+fi
+
+# Subject length check (max 72 chars)
+if [ "$subject_len" -gt 72 ]; then
+  printf "\nCommit message subject is too long (%d chars, max 72).\n" "$subject_len"
+  printf "Subject: %s\n\n" "$subject"
+  printf -- "--- %b✗%b [%bCommit Message%b] ---\n" "$RED" "$NC" "$YELLOW" "$NC"
+  printf -- "---------------------------------------------------------------\n"
+  printf -- "\n--- %bcommit-msg%b hook completed %bfailed%b ---\n" "$BLUE" "$NC" "$RED" "$NC"
+  printf -- "------------------------------------------------------------------------------------------------------------------------------\n"
+  exit 1
+fi
+
+printf "Commit message \"%b%s%b\" is valid (%d chars).\n" "$YELLOW" "$subject" "$NC" "$subject_len"
+printf -- "--- %b✓%b [%bCommit Message%b] ---\n" "$GREEN" "$NC" "$GREEN" "$NC"
+printf -- "---------------------------------------------------------------\n"
+printf -- "\n--- %bcommit-msg%b hook completed %bsuccessfully%b ---\n" "$BLUE" "$NC" "$GREEN" "$NC"
+printf -- "------------------------------------------------------------------------------------------------------------------------------\n\n"
+
+exit 0
