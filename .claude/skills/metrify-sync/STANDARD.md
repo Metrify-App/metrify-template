@@ -31,7 +31,7 @@ two ways.
 | `docs/GLOSSARY.md` | The repo's own domain words. |
 | `Makefile` | The make verbs below, plus project targets. |
 | `.husky/pre-commit`, `.husky/pre-push` | The hooks below, plus project checks. |
-| `.github/workflows/ci.yml` | `make install check` and the standard check, on push to `main` and on pull requests. The check compares `VERSION` with the public template's `main`. |
+| `.github/workflows/ci.yml` | `make install check` through `metrify-workflows` (`check.yml`) and the standard check, on push to `main` and on pull requests. The check compares `VERSION` with the public template's `main`. |
 | `.claude/settings.json` | Shared permissions: make verbs and read-only git. |
 | `package.json` | husky. |
 | `.gitignore` | Git basics. |
@@ -86,6 +86,17 @@ Every repo has these targets, so the CI, the hooks and agents need one command s
 | `check` | `format-check lint typecheck test`: what the CI runs. |
 
 A verb with nothing to do for the stack prints `<verb>: nothing to do` and exits 0.
+
+The CI runs them through `Metrify-App/metrify-workflows`: `check.yml` runs `make install`, checks
+that every verb above exists, then runs `make check`.
+
+**Optional verbs**, only in a repo that ships a binary or an image (the Makefile shows them
+commented out):
+
+| Verb | Does |
+|---|---|
+| `build` | Compiles the project; `build.yml` runs it. |
+| `docker-build` | Builds the image tagged `$(IMAGE)` (local default `IMAGE ?= <repo>:dev`); never pushes. `docker.yml` runs it, then tags and pushes to GHCR. |
 
 ## Hooks
 
