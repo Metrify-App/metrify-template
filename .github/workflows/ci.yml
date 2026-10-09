@@ -9,41 +9,39 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
+  # make install, then make check, through the shared workflows of Metrify-App/metrify-workflows.
+  # /metrify-setup sets the stack's toolchain here (node-version, python-version, go-version), or
+  # nothing when the repo has a flake.nix. Node is there for husky (make install).
   check:
-    name: make check
+    uses: Metrify-App/metrify-workflows/.github/workflows/check.yml@v1
+    permissions:
+      contents: read
+    with:
+      node-version: lts/*
+
+  standard:
+    name: Metrify standard
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-
-      # Node for husky (make install)
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-
-      # /metrify-setup adds the stack's toolchain here (setup-uv, setup-python...)
-
-      - name: Install dependencies
-        run: make install
-
-      - name: Format, lint, typecheck, test
-        run: make check
 
       - name: Metrify standard
         run: bash .claude/skills/metrify-quality/scripts/check-standard.sh
 
-  # Docker image, through the shared workflow of Metrify-App/github-workflows.
-  # Needs the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets. Uncomment for a repo that ships one.
+  # Docker image to ghcr.io/<org>/<repo>, through the same shared workflows. Uncomment for a repo
+  # that ships one; it needs the optional docker-build verb (Makefile). sha-<commit> on every push,
+  # latest on main; add tags: ["v*.*.*"] under push for vX.Y.Z release images.
   # docker:
-  #   needs: check
-  #   if: github.event_name == 'push'
-  #   uses: Metrify-App/github-workflows/.github/workflows/docker-build-push.yml@main
-  #   with:
-  #     dockerfile: ./Dockerfile
-  #   secrets: inherit
+  #   needs: [check, standard]
+  #   uses: Metrify-App/metrify-workflows/.github/workflows/docker.yml@v1
+  #   permissions:
+  #     contents: read
+  #     packages: write
