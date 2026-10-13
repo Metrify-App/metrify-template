@@ -36,4 +36,14 @@ fix: format ## Format and apply autofixable lint
 
 check: format-check lint typecheck test ## Everything the CI runs
 
+# Optional verbs (STANDARD.md): only in a repo that ships a binary or an image; uncomment them.
+# The CI's build and docker jobs call them. docker-build tags $(IMAGE) and never pushes.
+# IMAGE ?= <repo>:dev
+#
+# build: ## Compile the project
+# 	<build command>
+#
+# docker-build: ## Build the Docker image
+# 	docker build -t $(IMAGE) .
+
 ##@ Project

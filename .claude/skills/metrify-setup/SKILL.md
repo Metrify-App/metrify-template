@@ -53,9 +53,10 @@ One question-tool round, at most 4 questions, each with your best guess as the f
 In this order, replacing every fill marker:
 
 1. `Makefile`: each standard verb runs the confirmed command; `install` keeps
-   `npm install` for the hooks; project targets go under `##@ Project`. Existing targets
-   stay.
-2. `.github/workflows/ci.yml`: the toolchain step(s) for the stack; uncomment the
+   `npm install` for the hooks; `build` and `docker-build` are uncommented when the repo ships a
+   binary or an image; project targets go under `##@ Project`. Existing targets stay.
+2. `.github/workflows/ci.yml`: the stack's toolchain as inputs of the `check` job
+   (`node-version`, `python-version`, `go-version`; none with a `flake.nix`); uncomment the
    `docker` job when the repo has a `Dockerfile`. `.claude/settings.json`: the project targets agents run often.
 3. Hooks: an existing repo's own checks in `pre-commit`/`pre-push` stay, next to
    `make format-check lint` and `make test`.

@@ -51,5 +51,6 @@ Hooks are installed by `make install` (husky):
 - `pre-commit`: blocks files over 10 MB, then `make format-check lint`.
 - `pre-push`: on `main`/`develop`, refuses when behind origin; then `make test`.
 
-CI (`.github/workflows/ci.yml`) runs `make install check` and the Metrify standard check on
-every push to `main` and on pull requests.
+CI (`.github/workflows/ci.yml`) runs `make install check` through
+[metrify-workflows](https://github.com/Metrify-App/metrify-workflows) and the Metrify standard
+check on every push to `main` and on pull requests.

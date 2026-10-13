@@ -15,7 +15,8 @@ edit it there, never in a repo (`/metrify-sync` overwrites it).
 
 Always through `make`; `make help` lists every target. Every repo has `install`, `dev`,
 `format`, `format-check`, `lint`, `typecheck`, `test`, `fix`, and `check`, which is
-everything the CI runs.
+everything the CI runs. A repo that ships a binary or an image also has `build` or
+`docker-build`.
 
 ## Conventions
 
